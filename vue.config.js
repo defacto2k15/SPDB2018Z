@@ -1,6 +1,8 @@
 // const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
 module.exports = {
+  configureWebpack: {
+    devtool: 'source-map'},
     outputDir: 'dist',
     assetsDir: 'static',
     // baseUrl: IS_PRODUCTION
