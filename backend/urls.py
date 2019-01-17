@@ -6,12 +6,13 @@ The `urlpatterns` list routes URLs to views. For more information please see:
 
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework import routers
+from .api.views import message_list, message_detail
+from .api.views import index_view #MessageViewSet
 
-from .api.views import index_view, MessageViewSet
-
-router = routers.DefaultRouter()
-router.register('messages', MessageViewSet)
+# router = routers.DefaultRouter()
+# router.register('messages', MessageViewSet)
 
 urlpatterns = [
 
@@ -19,7 +20,10 @@ urlpatterns = [
     path('', index_view, name='index'),
 
     # http://localhost:8000/api/<router-viewsets>
-    path('api/', include(router.urls)),
+    #path('api/', include(router.urls)),
+
+    path('api/messages/', message_list),
+    path('api/messages/<int:pk>', message_detail),
 
     # http://localhost:8000/api/admin/
     path('api/admin/', admin.site.urls),
