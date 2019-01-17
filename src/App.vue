@@ -1,45 +1,57 @@
 <template>
   <div id="app">
-    <h1>Django VueJs Template</h1>
-    <div id="nav">
-     <router-link :to="{ name: 'home' }">Vue</router-link> |
-     <router-link :to="{ name: 'messages' }">Django Rest</router-link>
-    </div>
     <div class="grid">
       <div class="box header">
-        HEADER
+          <h1>Zaplanuj podróż</h1>
       </div>
       <div class="box left" >
         <div>
-            <GoogleMap></GoogleMap>
+            <GoogleMap :points-of-interest="pointsOfInterest" :routes="routes" :global="global"></GoogleMap>
         </div>
         <div>
-            <QueryConbtrols></QueryConbtrols>
+            <QueryControls :points-of-interest="pointsOfInterest" :routes="routes" :global="global" ></QueryControls>
         </div>
       </div>
-      <div class="box right">
-        <hello-world></hello-world>
+        <div class="box right">
+          <PoiPlan :points-of-interest="pointsOfInterest"></PoiPlan>
+          <PathDescriptionBox :routes="routes" route-name="Najszybsza trasa"></PathDescriptionBox>
+          <InterestingPathDescriptionBox :routes="routes"></InterestingPathDescriptionBox>
       </div>
     </div>
-    <router-view/>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import vueSlider from 'vue-slider-component/src/vue2-slider.vue'
+
 import GoogleMap from './components/GoogleMap'
-import QueryConbtrols from './components/QueryControls'
+import QueryControls from './components/QueryControls'
 import PlaceDescription from './components/PlaceDescription'
 import AddressDescription from './components/AddressDescription'
+import PathDescriptionBox from "./components/PathDescriptionBox";
+import PlaceInforBox from './components/PlaceInfoBox'
+import PoiPlan from  './components/PoiPlan'
+import InterestingPathDescriptionBox from "./components/InterestingPathDescriptionBox";
 export default {
   name: 'app',
   components: {
-    HelloWorld,
+    InterestingPathDescriptionBox,
+    PathDescriptionBox,
     GoogleMap,
-    QueryConbtrols,
+    QueryControls,
     PlaceDescription,
-    AddressDescription
+    AddressDescription,
+      PlaceInforBox,
+      PoiPlan,
+    vueSlider
   },
+    data (){
+      return {
+        pointsOfInterest: [],
+        routes:{ fastestRoute:null, interestingRoute:null, interestingPointsInRoute:[]},
+        global: {map:{}}
+      }
+    },
   GOOGLE_API_KEY: 'AIzaSyDCLwOaPymlOIpbOZcVZLzhqLZVHxaIbf8',
 }
 </script>
@@ -51,7 +63,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 
 html, body {

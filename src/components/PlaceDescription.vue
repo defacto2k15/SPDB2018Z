@@ -13,7 +13,6 @@ export default {
   watch: {
     placeid: function (newVal, oldVal) {
       var vm = this
-      console.log('W32 old ' + oldVal + ' new ' + newVal)
       if (newVal == null) {
         this.placeDetails = null
       } else if (newVal) {
