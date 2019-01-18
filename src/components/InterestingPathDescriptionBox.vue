@@ -7,14 +7,14 @@
            <div>Czas przyjazdu:{{endTime | formatDate}}</div>
        </div>
 
-       <div v-for="(travelObject, i) in routes.interestingRoute.travelObjects">
+       <div v-for="(travelObject, i) in routes.interestingRoute.travelObjects" :key="travelObject.location">
+           <div v-if="routes.interestingPointsInRoute[i]">
+               <b>{{i}}</b> Trasa do <b>{{routes.interestingPointsInRoute[i].place.name}}</b>
+           </div>
            <div>Odcinek <b>{{travelObject.summary}}</b></div>
            <div>Czas odcinka:{{travelObject.legs[0].duration.text}}</div>
-           <div v-for="step in travelObject.legs[0].steps">
+           <div v-for="step in travelObject.legs[0].steps" :key="step.end_address">
                <PathStepDescription :stepInfo="step"></PathStepDescription>
-           </div>
-           <div > {{i}}
-               Dojechałeś do {{routes.interestingPointsInRoute[i].name}}
            </div>
        </div>
   </div>

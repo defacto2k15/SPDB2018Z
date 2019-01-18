@@ -42,13 +42,24 @@ export default {
   },
 
   methods: {
+    generateColor: function(i){
+      var colors = ['#FF0000', '#FF00FF', '#00FF00', '#0000FF', '#00FFFF', '#FF0088']
+      return colors[i%colors.length];
+    },
     query: function () {
       var waypointPointsOfInterest= [];
-      this.pointsOfInterest.forEach(c => {
+      this.routes.interestingPointsInRoute.forEach(c => {
         if(c.isInPlan) {
           waypointPointsOfInterest.push({timeToSpend: c.timeSpent*3600, place_id: c.place.place_id})
         }
       });
+      if(this.routes.interestingPointsNearRoute) {
+        this.routes.interestingPointsNearRoute.forEach(c => {
+          if (c.isInPlan) {
+            waypointPointsOfInterest.push({timeToSpend: c.timeSpent * 3600, place_id: c.place.place_id})
+          }
+        });
+      }
 
       var getBody = {
         startPosition: this.startPositionLocation,
@@ -59,7 +70,10 @@ export default {
       };
 
       var vm = this;
-      vm.routes.interestingPointsInRoute = []
+
+      vm.routes.interestingPointsInRoute = [];
+      vm.routes.interestingPointsNearRoute = [];
+      // axios.get('http://127.0.0.1:8090/api/messages/', {body:getBody})
       axios.get('http://127.0.0.1:8090/routes', {body:getBody})
               .then(response => {
                 vm.routes.fastestRoute = response.data;
@@ -68,9 +82,15 @@ export default {
                 console.log("Error in request: "+e);
               });
 
+      // axios.get('http://127.0.0.1:8080/api/messages', {body:getBody})
       axios.get('http://127.0.0.1:8090/routes2', {body:getBody})
               .then(response => {
                 vm.routes.interestingRoute = response.data;
+                var i = 0;
+                vm.routes.interestingRoute.travelObjects.forEach(c => {
+                  c.color = vm.generateColor(i);
+                  i = i + 1;
+                });
 
                 response.data.pointsOfInterestNearRoute.forEach(c => {
                   var service = new window.google.maps.places.PlacesService(vm.global.map);
@@ -78,15 +98,38 @@ export default {
                       placeId: c
                     }, function (place, status) {
                       if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                        vm.routes.interestingPointsInRoute.push(
+                        vm.routes.interestingPointsNearRoute.push(
                                 {
                                   location: {lat: place.geometry.location.lat(), lng: place.geometry.location.lng()},
                                   place: place,
-                                  isInPlan: false
+                                  isInPlan: false,
+                                  timeSpent: 0.5
                                 });
-                      }})});
+                      }})
+                });
 
+                response.data.pointsOfInterestInRoute.forEach(c => {
+                  var service = new window.google.maps.places.PlacesService(vm.global.map);
+                  service.getDetails({
+                    placeId: c
+                  }, function (place, status) {
+                    if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+                      var time = 0.5;
+                      waypointPointsOfInterest.forEach(c => {
+                        if(c.place_id === place.place_id){
+                          time = c.timeToSpend / 3600;
+                        }
+                      });
 
+                      vm.routes.interestingPointsInRoute.push(
+                              {
+                                location: {lat: place.geometry.location.lat(), lng: place.geometry.location.lng()},
+                                place: place,
+                                isInPlan: true,
+                                timeSpent: time
+                              });
+                    }})
+                });
               })
               .catch(e => {
                 console.log("Error in request: "+e);

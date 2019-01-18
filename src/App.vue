@@ -13,7 +13,7 @@
         </div>
       </div>
         <div class="box right">
-          <PoiPlan :points-of-interest="pointsOfInterest"></PoiPlan>
+          <PoiPlan :routes="routes"></PoiPlan>
           <PathDescriptionBox :routes="routes" route-name="Najszybsza trasa"></PathDescriptionBox>
           <InterestingPathDescriptionBox :routes="routes"></InterestingPathDescriptionBox>
       </div>

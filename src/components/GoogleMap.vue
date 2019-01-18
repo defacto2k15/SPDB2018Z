@@ -54,7 +54,15 @@
         @dragend="updateEndPosition"
       ></gmap-marker>
 
-      <gmap-marker v-for="place in pointsOfInterest"
+      <gmap-marker v-for="place in routes.interestingPointsInRoute"
+                   :position="place.location"
+                   :clickable="true"
+                   label="!"
+                   :draggable="false"
+                   @click="clickedInterestingPlaceMarker(place)"
+                   :icon="findPointOfInterestIcon(place)"
+      ></gmap-marker>
+      <gmap-marker v-for="place in routes.interestingPointsNearRoute"
                    :position="place.location"
                    :clickable="true"
                    label="!"
@@ -68,6 +76,10 @@
       </gmap-info-window>
        <gmap-polyline v-if="fastestPath.length > 0" :path="fastestPath" :editable="false" ref="polyline">
        </gmap-polyline>
+
+      <gmap-polyline v-for="line in polilineInterestingPaths" :path="line.path"
+                     :editable="false" :options='{strokeColor:line.color}' >
+      </gmap-polyline>
     </gmap-map>
   </div>
 </template>
@@ -113,7 +125,8 @@ export default {
         }
       },
       proposedInterestingPlaces: ["ChIJv0QRf_HMHkcRv7d7R28ht3Q"],
-      infoboxInterestingPlace: null
+      infoboxInterestingPlace: null,
+
     }
   },
 
@@ -146,7 +159,21 @@ export default {
         });
       }
       return toReturn;
-    }
+    },
+     polilineInterestingPaths: function () {
+       var toReturn = []
+       if(this.routes.interestingRoute){
+         this.routes.interestingRoute.travelObjects.forEach(c => {
+           var decoded = google.maps.geometry.encoding.decodePath(c.overview_polyline.points);
+           var thisLinePoints = [];
+           decoded.forEach(d => {
+             thisLinePoints.push({lat: d.lat(), lng: d.lng()})
+           });
+            toReturn.push({path:thisLinePoints, color: c.color})
+         });
+       }
+        return toReturn;
+     }
   },
 
   methods: {
