@@ -7,7 +7,7 @@ class Message(models.Model):
     body = models.TextField()
 
 
-class MessageSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Message
-        fields = ('url', 'subject', 'body', 'pk')
+# class MessageSerializer(serializers.HyperlinkedModelSerializer):
+#     class Meta:
+#         model = Message
+#         fields = ('url', 'subject', 'body', 'pk')
