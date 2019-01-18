@@ -1,8 +1,8 @@
 <template>
-  <div v-if="location" class="addressDescription">
+  <span v-if="location" class="addressDescription">
     <label><b>{{title}}</b></label>
-    <label>{{address}}  </label>
-  </div>
+    <label>  <i>{{address}}</i>  </label>
+  </span>
 </template>
 
 <script>
@@ -32,6 +32,10 @@ export default {
 
 <style scoped>
 .addressDescription{
-  border-style: solid;
+  border-color: gray;
+  padding: 3px;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin:15px
 }
 </style>

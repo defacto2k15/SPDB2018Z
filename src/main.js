@@ -8,11 +8,27 @@ import axios from 'axios'
 
 import store from '@/store'
 import router from '@/router'
+import 'bootstrap/dist/css/bootstrap.css'
+import 'bootstrap-vue/dist/bootstrap-vue.css'
+import BootstrapVue from 'bootstrap-vue'
+
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faCoffee } from '@fortawesome/free-solid-svg-icons'
+import { faStar } from '@fortawesome/free-solid-svg-icons'
+import { faStarHalf } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+library.add(faCoffee)
+library.add(faStar)
+library.add(faStarHalf)
+
+Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 Vue.config.productionTip = false
 
 // Vue.use(VueRouter)
 
+Vue.use(BootstrapVue);
 Vue.use(VueGoogleMaps, {
   load: {
     key: App.GOOGLE_API_KEY,

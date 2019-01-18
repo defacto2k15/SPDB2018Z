@@ -34,6 +34,7 @@ import PathDescriptionBox from "./components/PathDescriptionBox";
 import PlaceInforBox from './components/PlaceInfoBox'
 import PoiPlan from  './components/PoiPlan'
 import InterestingPathDescriptionBox from "./components/InterestingPathDescriptionBox";
+
 export default {
   name: 'app',
   components: {
@@ -73,6 +74,7 @@ export default {
   color: #2c3e50;
   height: 100%;
   width: 100%;
+    background-color: aquamarine;
 }
 div{
 }
@@ -109,19 +111,17 @@ html, body {
 .box { margin: 10px 0 10px 10px}
 .left {
   flex: 0 0 70%;
-  background-color: aquamarine;
 }
 
 .right{
   flex: 0 0 28%;
-  height: 870px;
+  height: 840px;
     overflow:scroll;
 }
 
 .down{
     display:flex;
-    height: 900px;
+    height: 800px;
 }
 
-@import '../dist/static/'
 </style>

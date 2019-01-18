@@ -2,7 +2,7 @@
     <div class="pathStepDescription">
         <div>Dystans: {{stepInfo.distance.text}}</div>
         <div>Czas trwania: {{stepInfo.duration.text}}</div>
-        <div v-html="stepInfo.html_instructions"></div>
+        <i><div v-html="stepInfo.html_instructions"></div></i>
     </div>
 </template>
 
@@ -15,6 +15,11 @@
 
 <style scoped>
 .pathStepDescription{
-    border-style: solid;
+    border-top: solid;
+    border-radius: 25px;
+    text-align: left;
+    padding-left:30px;
+    padding-bottom: 20px;
+
 }
 </style>

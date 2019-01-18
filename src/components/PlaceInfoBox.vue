@@ -1,11 +1,19 @@
 <template>
-<div>
+<div class="infoBox">
     <div v-if="place">
         <div>
             <b>{{place.place.name}}</b>
         </div>
         <div>
-            Ocena: {{place.place.rating}}
+            Ocena:
+
+            <span v-for="i in [1,2,3,4,5]" >
+                    <font-awesome-icon v-if="shouldShowStar(i, place.place.rating)" icon="star"></font-awesome-icon>
+                    <font-awesome-icon v-else-if="shouldShowHalfStar(i, place.place.rating)" icon="star-half"></font-awesome-icon>
+            </span>
+
+
+            {{place.place.rating}}
         </div>
         <div>
             {{place.place.vicinity}}
@@ -27,11 +35,20 @@
             addToPlan: function (place) {
                 place.isInPlan = !place.isInPlan;
                 this.$eventHub.$emit('poiChange');
+            },
+            shouldShowStar: function(i, rating){
+                return parseFloat(rating) >= (i)
+            },
+            shouldShowHalfStar: function(i, rating){
+                return parseFloat(rating) >= (i-0.5)
             }
         },
     }
 </script>
 
 <style scoped>
+    .infoBox{
+
+    }
 
 </style>

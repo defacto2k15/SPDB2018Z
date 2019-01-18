@@ -1,7 +1,7 @@
 <template>
    <div class="pathDescription" v-if="routes.fastestRoute">
-       <div>
-           <div><b>{{routeName}}</b></div>
+       <div class="wholePathInfo">
+           <div><h3>{{routeName}}</h3></div>
            <div>Czas podróży:{{travelTime | timeInHours}}</div>
            <div>Czas wyjazdu:{{startTime | formatDate }}</div>
            <div>Czas przyjazdu:{{endTime | formatDate}}</div>
@@ -43,7 +43,15 @@
 
 <style scoped>
 .pathDescription{
-    border-style: dotted;
+    border-left-style: dotted;
+    border-right-style: dotted;
+    border-bottom-style: solid;
+    border-top-style: solid;
+    border-top-width: 10px;
 }
+    .wholePathInfo{
+        text-align: left;
+        padding-left: 30%;
+    }
 
 </style>

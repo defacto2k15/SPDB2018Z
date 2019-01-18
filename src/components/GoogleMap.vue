@@ -1,14 +1,16 @@
 <template>
   <div class="map">
-    <div>
-      <label>Miejsce startu:
-        <gmap-autocomplete @place_changed="setStartPosition" placeholder="Set start position">
+    <div class="topMapInfo">
+      <span class="form-group">
+          <label>Miejsce startu: </label>
+            <gmap-autocomplete @place_changed="setStartPosition" placeholder="Miejsce startu">
+            </gmap-autocomplete>
+      </span>
+      <span class="form-group">
+        <label>Miejsce końca: </label>
+        <gmap-autocomplete @place_changed="setEndPosition" aria-placeholder="Miejsce końca trasy">
         </gmap-autocomplete>
-      </label>
-      <label>Miejsce końca:
-        <gmap-autocomplete @place_changed="setEndPosition" aria-placeholder="Set end position">
-        </gmap-autocomplete>
-      </label>
+      </span>
       <br/>
       <!--<PlaceDescription :map="mapObject" :placeid="startPlaceId" title="Start"></PlaceDescription>-->
       <!--<PlaceDescription :map="mapObject" :placeid="endPlaceId" title="End"></PlaceDescription>-->
@@ -38,7 +40,7 @@
       <gmap-marker
         :position="startMarker.location"
         :clickable="true"
-        label="start"
+        label="S"
         :draggable="true"
         @click="center=startMarker.location"
         @dragend="updateStartPosition"
@@ -46,13 +48,13 @@
       <gmap-marker
         :position="endMarker.location"
         :clickable="true"
-        label="end"
+        label="K"
         :draggable="true"
         @click="center=endMarker.location"
         @dragend="updateEndPosition"
       ></gmap-marker>
 
-      <gmap-marker v-for="(place, i) in routes.interestingPointsInRoute"
+      <gmap-marker v-for="(place, i) in interestingPointsInRoute"
                    :position="place.location"
                    :clickable="true"
                    :label="i"
@@ -60,7 +62,7 @@
                    @click="clickedInterestingPlaceMarker(place)"
                    :icon="findPointOfInterestIcon(place)"
       ></gmap-marker>
-      <gmap-marker v-for="place in routes.interestingPointsNearRoute"
+      <gmap-marker v-for="place in interestingPointsNearRoute"
                    :position="place.location"
                    :clickable="true"
                    label="!"
@@ -122,7 +124,8 @@ export default {
           height: -35
         }
       },
-      proposedInterestingPlaces: ["ChIJv0QRf_HMHkcRv7d7R28ht3Q"],
+      interestingPointsNearRoute: [],
+      interestingPointsInRoute: [],
       infoboxInterestingPlace: null,
 
       polilineInterestingPathsField:[]
@@ -135,7 +138,6 @@ export default {
     this.$refs.mapRef.$mapPromise.then((map) => {
       this.mapObject = map;
       vm.global.map = map;
-      this.calculateInterestingPlaces(this.proposedInterestingPlaces)
     });
     this.geolocate();
 
@@ -145,8 +147,11 @@ export default {
     });
 
     this.$eventHub.$on('updateRoutes',  routes => {
-      vm.routes = routes
+      vm.routes = routes;
       vm.polilineInterestingPathsField =  vm.polilineInterestingPathsFunc();
+
+      vm.interestingPointsInRoute = routes.interestingPointsInRoute;
+      vm.interestingPointsNearRoute = routes.interestingPointsNearRoute;
     });
   },
 
@@ -277,25 +282,6 @@ export default {
       this.toggleInfoWindow(place.location)
     },
 
-    calculateInterestingPlaces: function(interestingPlacesIds){
-      var map = this.mapObject;
-      var vm = this;
-      var service = new window.google.maps.places.PlacesService(map);
-      interestingPlacesIds.forEach(c => {
-        service.getDetails({
-          placeId: c
-        }, function (place, status) {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-            vm.pointsOfInterest.push(
-                    {location:{lat:place.geometry.location.lat(), lng:place.geometry.location.lng()},
-                      place:place,
-                      isInPlan: false
-                    });
-          }
-        })
-      });
-    },
-
     findPointOfInterestIcon: function(place){
       if(place.isInPlan){
         return "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png";
@@ -309,6 +295,15 @@ export default {
 <style>
 #VueGoogleMap{
   width:100%;
-  height: 750px
+  height: 700px;
+  padding: 5px 5px  5px 5px
+}
+  .topMapInfo{
+    padding-top:10px
+  }
+
+.topMapInfo > .form-group{
+  margin-left:30px;
+  margin-right:30px;
 }
 </style>

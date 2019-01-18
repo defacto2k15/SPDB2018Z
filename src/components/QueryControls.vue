@@ -1,21 +1,25 @@
 <template>
-    <div>
-    <select v-model="travelMode">
-      <option disabled value=null>Travel mode</option>
-      <option value="DRIVING">Driving</option>
-      <option value="WALKING">Walking</option>
-      <option value="BICYCLING">Bicycling</option>
-      <option value="TRANSIT">Transit</option>
-    </select>
-  <select v-model="interestKeyword">
-    <option disabled value=null>What you are looking for</option>
-    <option> Museum</option>
-    <option> Restaurant</option>
-    <option> Shop</option>
-  </select>
-  <button v-on:click="query"  :disabled="(travelMode==null || interestKeyword == null
-    || startPositionLocation == null || endPositionLocation == null) && false" >Query</button>
-    </div>
+   <div class="queryControl form-group">
+        <select v-model="travelMode" class="inputstl">
+          <option disabled value=null>Sposób podróży</option>
+          <option value="DRIVING">Autem</option>
+          <option value="WALKING">Spacerem</option>
+          <option value="BICYCLING">Rowerem</option>
+          <option value="TRANSIT">Komunikacją miejską</option>
+        </select>
+      <select v-model="interestKeyword" class="inputstl"  >
+        <option disabled value=null >Czego poszukujesz?</option>
+        <option value="museum">Muzeum</option>
+        <option value="restaurant">Restauracja</option>
+        <option value="shop">Sklep</option>
+      </select>
+      <button v-on:click="query" class="inputstl"  :disabled="(travelMode==null || interestKeyword == null
+        || startPositionLocation == null || endPositionLocation == null || requestIsProcessed) " >
+          <span v-if="requestIsProcessed">   <font-awesome-icon icon="coffee" spin /> </span>
+          <span v-else>Szukaj</span>
+      </button>
+       <span class="fa fa-star checked"></span>
+   </div>
 </template>
 
 <script>
@@ -29,7 +33,9 @@ export default {
       travelMode: null,
       interestKeyword: null,
       startPositionLocation: null,
-      endPositionLocation: null
+      endPositionLocation: null,
+        requestIsProcessed:false
+
     }
   },
   mounted() {
@@ -46,9 +52,11 @@ export default {
       var colors = ['#FF0000', '#FF00FF', '#00FF00', '#0000FF', '#00FFFF', '#FF0088']
       return colors[i%colors.length];
     },
-    foo: function(vm, response, newPointsInRoute){
+    foo: function(vm, response, newPointsInRoute, callback){
+        var i = 0;
         response.data.place_id.forEach(c => {
           if(newPointsInRoute.find( q => q.place.place_id === c)){
+              i++;
             return;
           }
 
@@ -57,6 +65,7 @@ export default {
             placeId: c
           }, function (place, status) {
             if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+                i++;
               vm.routes.interestingPointsNearRoute.push(
                       {
                         location: {lat: place.geometry.location.lat(), lng: place.geometry.location.lng()},
@@ -64,6 +73,7 @@ export default {
                         isInPlan: false,
                         timeSpent: 0.5
                       });
+                callback();
             }
           })
         });
@@ -76,6 +86,7 @@ export default {
       return sum;
     },
     query: function () {
+        this.requestIsProcessed = true;
       var waypointPointsOfInterest= [];
       var newPointsInRoute = [];
       this.routes.interestingPointsInRoute.forEach(c => {
@@ -111,13 +122,17 @@ export default {
                 vm.routes.fastestRoute = {travelObjects:  [response.data.routes[0]],
                     travelTime:this.calculateTravelTime(response.data.routes[0]) };
                 if(waypointPointsOfInterest.length === 0 ){
-                    this.foo(vm, response, newPointsInRoute)
+                    this.foo(vm, response, newPointsInRoute, () => {
+                        vm.$eventHub.$emit('updateRoutes',vm.routes );
+                    } );
+                    vm.requestIsProcessed = false;
                 }
 
                 vm.$eventHub.$emit('newRequest');
               })
               .catch(e => {
                 console.log("Error in request: "+e);
+                vm.requestIsProcessed = false;
               });
 
       if(waypointPointsOfInterest.length > 0 ) {
@@ -156,17 +171,22 @@ export default {
                   .then(response => {
                     var to = response.data.routes[0];
                     to.color = vm.generateColor(j);
-                    vm.foo(vm, response, newPointsInRoute);
+                      this.foo(vm, response, newPointsInRoute, () => {
+                          vm.$eventHub.$emit('updateRoutes',vm.routes );
+                      } );
                     vm.routes.interestingRoute.travelObjects.push(to);
 
                     vm.routes.interestingRoute.travelTime += this.calculateTravelTime(response.data.routes[0]);
 
                     vm.$eventHub.$emit('newRequest');
-                    vm.$eventHub.$emit('updateRoutes',vm.routes );
                     j++;
+                    if(j >= positions.length-1){
+                        vm.requestIsProcessed = false;
+                    }
                   })
                   .catch(e => {
                     console.log("Error in request: " + e);
+                      vm.requestIsProcessed = false;
                   });
         }
       }
@@ -176,5 +196,24 @@ export default {
 </script>
 
 <style scoped>
+select, button{
+    margin-left:20px;
+    margin-right:20px;
+    margin-top:10px
+}
+    button{
+        width:100px
+    }
 
+    .inputstl {
+    padding: 9px;
+    border: solid 1px #0077B0;
+    outline: 0;
+    background: -webkit-gradient(linear, left top, left 25, from(#FFFFFF), color-stop(4%, #C6ECFF), to(#FFFFFF));
+    background: -moz-linear-gradient(top, #FFFFFF, #C6ECFF 1px, #FFFFFF 25px);
+    box-shadow: rgba(0,0,0, 0.1) 0px 0px 8px;
+    -moz-box-shadow: rgba(0,0,0, 0.1) 0px 0px 8px;
+    -webkit-box-shadow: rgba(0,0,0, 0.1) 0px 0px 8px;
+
+    }
 </style>
