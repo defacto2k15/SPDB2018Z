@@ -1,23 +1,26 @@
 import googlemaps
 from datetime import datetime
-
+import ast
 
 def directions(jsonRequest):
 
     gmaps = googlemaps.Client(key='AIzaSyDCLwOaPymlOIpbOZcVZLzhqLZVHxaIbf8')
 
     now = datetime.now()
-    direction_result = gmaps.directions(origin={"lat":52.2288242, "lng":21.0130819},
-                                        destination={"lat": 52.2285690, "lng": 21.0155288},
-                                        mode="driving",
+    direction_result = gmaps.directions(origin=ast.literal_eval(jsonRequest['startPosition']),
+                                        destination=ast.literal_eval(jsonRequest['endPosition']),
+                                        mode=jsonRequest['travelMode'],
                                         departure_time=now)
 
     numberOfPlaces = len(direction_result[0]['legs'][0]['steps'])
     tabPlaces = []
     for x in range(numberOfPlaces):
-        place = gmaps.places('restaurant', location=direction_result[0]['legs'][0]['steps'][x]['start_location'],
-                             radius=100, region='PL', language='pl-PL',
-                             min_price=1, max_price=4, open_now=True)
-        tabPlaces.append(place)
+        place = gmaps.places(jsonRequest['pointsOfInterestKeyword'],
+                             location=direction_result[0]['legs'][0]['steps'][x]['start_location'],
+                             radius=100, region='PL', language='pl-PL', min_price=1, max_price=4, open_now=True)
+        for y in range(len(place['results'])):
+            tabPlaces.append(place['results'][y]['place_id'])
 
-    return (direction_result, tabPlaces)
+    tabPlaces = list(set(tabPlaces))
+
+    return {'routes': direction_result, 'place_id': tabPlaces}
