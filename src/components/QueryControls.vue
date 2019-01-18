@@ -46,94 +46,130 @@ export default {
       var colors = ['#FF0000', '#FF00FF', '#00FF00', '#0000FF', '#00FFFF', '#FF0088']
       return colors[i%colors.length];
     },
+    foo: function(vm, response, newPointsInRoute){
+        response.data.place_id.forEach(c => {
+          if(newPointsInRoute.find( q => q.place.place_id === c)){
+            return;
+          }
+
+          var service = new window.google.maps.places.PlacesService(vm.global.map);
+          service.getDetails({
+            placeId: c
+          }, function (place, status) {
+            if (status === window.google.maps.places.PlacesServiceStatus.OK) {
+              vm.routes.interestingPointsNearRoute.push(
+                      {
+                        location: {lat: place.geometry.location.lat(), lng: place.geometry.location.lng()},
+                        place: place,
+                        isInPlan: false,
+                        timeSpent: 0.5
+                      });
+            }
+          })
+        });
+    },
+    calculateTravelTime: function(route){
+      var sum = 0;
+      route.legs[0].steps.forEach(c => {
+        sum += c.duration.value;
+      });
+      return sum;
+    },
     query: function () {
       var waypointPointsOfInterest= [];
+      var newPointsInRoute = [];
       this.routes.interestingPointsInRoute.forEach(c => {
         if(c.isInPlan) {
           waypointPointsOfInterest.push({timeToSpend: c.timeSpent*3600, place_id: c.place.place_id})
+          newPointsInRoute.push(c)
         }
       });
       if(this.routes.interestingPointsNearRoute) {
         this.routes.interestingPointsNearRoute.forEach(c => {
           if (c.isInPlan) {
             waypointPointsOfInterest.push({timeToSpend: c.timeSpent * 3600, place_id: c.place.place_id})
+            newPointsInRoute.push(c)
           }
         });
       }
 
       var getBody = {
-        startPosition: this.startPositionLocation,
-        endPosition: this.endPositionLocation,
-        travelMode: this.travelMode,
-        waypointPointsOfInterest: waypointPointsOfInterest,
-        pointsOfIntereseKeyword: this.interestKeyword
+        startPosition: {lat: this.startPositionLocation.lat, lng: this.startPositionLocation.lng} ,
+        endPosition: {lat: this.endPositionLocation.lat, lng:this.endPositionLocation.lng},
+        travelMode: this.travelMode.toLowerCase(),
+        pointsOfInterestKeyword: this.interestKeyword
       };
 
+      console.log("We make request!")
       var vm = this;
 
       vm.routes.interestingPointsInRoute = [];
       vm.routes.interestingPointsNearRoute = [];
-      // axios.get('http://127.0.0.1:8090/api/messages/', {body:getBody})
-      axios.get('http://127.0.0.1:8090/routes', {body:getBody})
+      axios.get('http://127.0.0.1:8080/api/messages/', {params:getBody})
+      // axios.get('http://127.0.0.1:8090/routes', {body:getBody})
               .then(response => {
-                vm.routes.fastestRoute = response.data;
+                vm.routes.fastestRoute = {travelObjects:  [response.data.routes[0]],
+                    travelTime:this.calculateTravelTime(response.data.routes[0]) };
+                if(waypointPointsOfInterest.length === 0 ){
+                    this.foo(vm, response, newPointsInRoute)
+                }
+
+                vm.$eventHub.$emit('newRequest');
               })
               .catch(e => {
                 console.log("Error in request: "+e);
               });
 
-      // axios.get('http://127.0.0.1:8080/api/messages', {body:getBody})
-      axios.get('http://127.0.0.1:8090/routes2', {body:getBody})
-              .then(response => {
-                vm.routes.interestingRoute = response.data;
-                var i = 0;
-                vm.routes.interestingRoute.travelObjects.forEach(c => {
-                  c.color = vm.generateColor(i);
-                  i = i + 1;
-                });
+      if(waypointPointsOfInterest.length > 0 ) {
+        // getBody.waypointPointsOfInterest = waypointPointsOfInterest;
 
-                response.data.pointsOfInterestNearRoute.forEach(c => {
-                  var service = new window.google.maps.places.PlacesService(vm.global.map);
-                    service.getDetails({
-                      placeId: c
-                    }, function (place, status) {
-                      if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                        vm.routes.interestingPointsNearRoute.push(
-                                {
-                                  location: {lat: place.geometry.location.lat(), lng: place.geometry.location.lng()},
-                                  place: place,
-                                  isInPlan: false,
-                                  timeSpent: 0.5
-                                });
-                      }})
-                });
+        vm.routes.interestingPointsInRoute = newPointsInRoute;
 
-                response.data.pointsOfInterestInRoute.forEach(c => {
-                  var service = new window.google.maps.places.PlacesService(vm.global.map);
-                  service.getDetails({
-                    placeId: c
-                  }, function (place, status) {
-                    if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                      var time = 0.5;
-                      waypointPointsOfInterest.forEach(c => {
-                        if(c.place_id === place.place_id){
-                          time = c.timeToSpend / 3600;
-                        }
-                      });
+        var positions = [];
+        positions.push({lat: this.startPositionLocation.lat, lng: this.startPositionLocation.lng})
+        newPointsInRoute.forEach(c => {
+          positions.push({lat: c.place.geometry.location.lat(), lng:c.place.geometry.location.lng()})
+        });
+        positions.push({lat: this.endPositionLocation.lat, lng:this.endPositionLocation.lng})
 
-                      vm.routes.interestingPointsInRoute.push(
-                              {
-                                location: {lat: place.geometry.location.lat(), lng: place.geometry.location.lng()},
-                                place: place,
-                                isInPlan: true,
-                                timeSpent: time
-                              });
-                    }})
-                });
-              })
-              .catch(e => {
-                console.log("Error in request: "+e);
-              });
+        vm.routes.interestingPointsInRoute = newPointsInRoute;
+
+        vm.routes.interestingRoute = {};
+        vm.routes.interestingRoute.travelObjects = [];
+        vm.routes.interestingRoute.travelTime = 0;
+        newPointsInRoute.forEach(c => {
+          vm.routes.interestingRoute.travelTime += c.timeSpent*3600;
+        });
+
+        var j = 0;
+        for(var i = 0; i < positions.length-1; i++) {
+          getBody = {
+            startPosition: positions[i],
+            endPosition: positions[i+1],
+            travelMode: this.travelMode.toLowerCase(),
+            pointsOfInterestKeyword: this.interestKeyword
+          };
+
+          console.log("RequestX: "+i)
+          axios.get('http://127.0.0.1:8080/api/messages', {params: getBody})
+          // axios.get('http://127.0.0.1:8090/routes2', {body: getBody})
+                  .then(response => {
+                    var to = response.data.routes[0];
+                    to.color = vm.generateColor(j);
+                    vm.foo(vm, response, newPointsInRoute);
+                    vm.routes.interestingRoute.travelObjects.push(to);
+
+                    vm.routes.interestingRoute.travelTime += this.calculateTravelTime(response.data.routes[0]);
+
+                    vm.$eventHub.$emit('newRequest');
+                    vm.$eventHub.$emit('updateRoutes',vm.routes );
+                    j++;
+                  })
+                  .catch(e => {
+                    console.log("Error in request: " + e);
+                  });
+        }
+      }
     }
   }
 }

@@ -1,20 +1,19 @@
 <template>
   <div class="map">
     <div>
-      <h2>Search and add a pin</h2>
-      <label> Start point:
+      <label>Miejsce startu:
         <gmap-autocomplete @place_changed="setStartPosition" placeholder="Set start position">
         </gmap-autocomplete>
       </label>
-      <label> End point:
+      <label>Miejsce końca:
         <gmap-autocomplete @place_changed="setEndPosition" aria-placeholder="Set end position">
         </gmap-autocomplete>
       </label>
       <br/>
-      <PlaceDescription :map="mapObject" :placeid="startPlaceId" title="Start"></PlaceDescription>
-      <PlaceDescription :map="mapObject" :placeid="endPlaceId" title="End"></PlaceDescription>
-      <AddressDescription :map="mapObject" :location="startMarker.location" title="StartPosition" ></AddressDescription>
-      <AddressDescription :map="mapObject" :location="endMarker.location" title="EndPosition" ></AddressDescription>
+      <!--<PlaceDescription :map="mapObject" :placeid="startPlaceId" title="Start"></PlaceDescription>-->
+      <!--<PlaceDescription :map="mapObject" :placeid="endPlaceId" title="End"></PlaceDescription>-->
+      <AddressDescription :map="mapObject" :location="startMarker.location" title="Początek: " ></AddressDescription>
+      <AddressDescription :map="mapObject" :location="endMarker.location" title="Koniec: " ></AddressDescription>
       <div id="terminalMarkerDescription">
         <div id="startMarkerDescription">
         </div>
@@ -27,7 +26,6 @@
     <gmap-map id="VueGoogleMap" ref="mapRef"
       :center="center"
       :zoom="12"
-      style="width:100%;  height: 400px;"
     >
       <gmap-marker
         :key="index"
@@ -54,10 +52,10 @@
         @dragend="updateEndPosition"
       ></gmap-marker>
 
-      <gmap-marker v-for="place in routes.interestingPointsInRoute"
+      <gmap-marker v-for="(place, i) in routes.interestingPointsInRoute"
                    :position="place.location"
                    :clickable="true"
-                   label="!"
+                   :label="i"
                    :draggable="false"
                    @click="clickedInterestingPlaceMarker(place)"
                    :icon="findPointOfInterestIcon(place)"
@@ -77,7 +75,7 @@
        <gmap-polyline v-if="fastestPath.length > 0" :path="fastestPath" :editable="false" ref="polyline">
        </gmap-polyline>
 
-      <gmap-polyline v-for="line in polilineInterestingPaths" :path="line.path"
+      <gmap-polyline v-for="line in polilineInterestingPathsField" :path="line.path"
                      :editable="false" :options='{strokeColor:line.color}' >
       </gmap-polyline>
     </gmap-map>
@@ -127,6 +125,8 @@ export default {
       proposedInterestingPlaces: ["ChIJv0QRf_HMHkcRv7d7R28ht3Q"],
       infoboxInterestingPlace: null,
 
+      polilineInterestingPathsField:[]
+
     }
   },
 
@@ -139,13 +139,14 @@ export default {
     });
     this.geolocate();
 
-    this.$eventHub.$on('newResponse', response => {
-        this.path = [];
-        var decoded = google.maps.geometry.encoding.decodePath(response.travelObject.overview_polyline.points)
-        decoded.forEach(d => {
-          this.path.push({lat: d.lat(), lng: d.lng()})
-        });
-      this.calculateInterestingPlaces(this.proposedInterestingPlaces)
+    this.$eventHub.$on('newRequest', response => {
+      console.log("Update!")
+      vm.$forceUpdate();
+    });
+
+    this.$eventHub.$on('updateRoutes',  routes => {
+      vm.routes = routes
+      vm.polilineInterestingPathsField =  vm.polilineInterestingPathsFunc();
     });
   },
 
@@ -186,6 +187,20 @@ export default {
           lng: position.coords.longitude
         }
       })
+    },
+    polilineInterestingPathsFunc: function () {
+      var toReturn = []
+      if(this.routes.interestingRoute){
+        this.routes.interestingRoute.travelObjects.forEach(c => {
+          var decoded = google.maps.geometry.encoding.decodePath(c.overview_polyline.points);
+          var thisLinePoints = [];
+          decoded.forEach(d => {
+            thisLinePoints.push({lat: d.lat(), lng: d.lng()})
+          });
+          toReturn.push({path:thisLinePoints, color: c.color})
+        });
+      }
+      return toReturn;
     },
     setStartPosition: function (location) {
       this.startPlaceId = location.place_id
@@ -291,3 +306,9 @@ export default {
   }
 }
 </script>
+<style>
+#VueGoogleMap{
+  width:100%;
+  height: 750px
+}
+</style>

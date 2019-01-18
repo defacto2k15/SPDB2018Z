@@ -1,22 +1,24 @@
 <template>
   <div id="app">
     <div class="grid">
-      <div class="box header">
-          <h1>Zaplanuj podróż</h1>
-      </div>
-      <div class="box left" >
-        <div>
-            <GoogleMap :points-of-interest="pointsOfInterest" :routes="routes" :global="global"></GoogleMap>
+        <div class="top box header">
+            <h1>Zaplanuj podróż</h1>
         </div>
-        <div>
-            <QueryControls :points-of-interest="pointsOfInterest" :routes="routes" :global="global" ></QueryControls>
+        <div class="down">
+            <div class="box left" id="leftBox">
+                <div class="d1">
+                    <GoogleMap :points-of-interest="pointsOfInterest" :routes="routes" :global="global"></GoogleMap>
+                </div>
+                <div>
+                    <QueryControls :points-of-interest="pointsOfInterest" :routes="routes" :global="global" ></QueryControls>
+                </div>
+            </div>
+            <div class="box right">
+                <PoiPlan :routes="routes"></PoiPlan>
+                <PathDescriptionBox :routes="routes" route-name="Najszybsza trasa"></PathDescriptionBox>
+                <InterestingPathDescriptionBox :routes="routes"></InterestingPathDescriptionBox>
+            </div>
         </div>
-      </div>
-        <div class="box right">
-          <PoiPlan :routes="routes"></PoiPlan>
-          <PathDescriptionBox :routes="routes" route-name="Najszybsza trasa"></PathDescriptionBox>
-          <InterestingPathDescriptionBox :routes="routes"></InterestingPathDescriptionBox>
-      </div>
     </div>
   </div>
 </template>
@@ -52,6 +54,12 @@ export default {
         global: {map:{}}
       }
     },
+    mounted(){
+    var vm = this;
+      this.$eventHub.$on('updateRoutes',  routes => {
+        vm.routes = routes
+      });
+    },
   GOOGLE_API_KEY: 'AIzaSyDCLwOaPymlOIpbOZcVZLzhqLZVHxaIbf8',
 }
 </script>
@@ -63,6 +71,13 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  height: 100%;
+  width: 100%;
+}
+div{
+}
+#leftBox{
+  flex: 0 0 70%;
 }
 
 html, body {
@@ -72,30 +87,41 @@ html, body {
 .grid {
   min-height: 100%;
   display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
+  flex-wrap: nowrap;
+  flex-direction: column;
 }
 .grid > .left, .grid > .right {
-  display: flex;
-  flex-basis: calc(50% - 14px);
-  justify-content: center;
+  display: inline-flex;
+  justify-content: end;
   flex-direction: column;
 }
 .grid > .header {
-  display: flex;
   margin-top: 0px;
   flex-basis: calc(100% - 22px);
   justify-content: center;
   flex-direction: column;
+  height: 50px
 }
 .grid > div > div {
-  display: flex;
   justify-content: center;
   flex-direction: column;
 }
 .box { margin: 10px 0 10px 10px}
-.left {background-color: aquamarine; }
-.box2 { background-color: orange; }
-.box3 { background-color: purple; }
-.box4 { background-color: grey; }
+.left {
+  flex: 0 0 70%;
+  background-color: aquamarine;
+}
+
+.right{
+  flex: 0 0 28%;
+  height: 870px;
+    overflow:scroll;
+}
+
+.down{
+    display:flex;
+    height: 900px;
+}
+
+@import '../dist/static/'
 </style>

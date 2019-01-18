@@ -37,6 +37,10 @@
             }
         },
         mounted() {
+            var vm = this;
+            this.$eventHub.$on('poiChange', c => {
+                vm.$forceUpdate();
+            })
         },
     }
 </script>

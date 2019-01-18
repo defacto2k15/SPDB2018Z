@@ -2,14 +2,14 @@
    <div class="pathDescription" v-if="routes.interestingRoute">
        <div>
            <div><b>Trasa ciekawa</b></div>
-           <div>Czas podróży:{{travelTime | timeInHours}}</div>
+           <div>Czas podróży:{{travelTime | timeInHours}} <span class="timeDelta">+{{deltaTime | timeInHours}}</span></div>
            <div>Czas wyjazdu:{{startTime | formatDate }}</div>
            <div>Czas przyjazdu:{{endTime | formatDate}}</div>
        </div>
 
-       <div v-for="(travelObject, i) in routes.interestingRoute.travelObjects" :key="travelObject.location">
+       <div v-for="(travelObject, i) in travelObjects" :key="travelObject.location">
            <div v-if="routes.interestingPointsInRoute[i]">
-               <b>{{i}}</b> Trasa do <b>{{routes.interestingPointsInRoute[i].place.name}}</b>
+               <b>{{i+1}}:</b> Trasa do <b>{{routes.interestingPointsInRoute[i].place.name}}</b>
            </div>
            <div>Odcinek <b>{{travelObject.summary}}</b></div>
            <div>Czas odcinka:{{travelObject.legs[0].duration.text}}</div>
@@ -30,9 +30,14 @@
         data () {
             return {
                 steps: [],
+                travelObjects: []
             }
         },
         mounted () {
+            var vm = this;
+            vm.$eventHub.$on('updateRoutes',routes => {
+                vm.travelObjects = routes.interestingRoute.travelObjects;
+            } );
         },
         computed:{
             startTime: function () {
@@ -44,6 +49,9 @@
             endTime: function(){
                 return new Date(this.startTime.getTime() + this.travelTime*1000);
             },
+            deltaTime: function(){
+                return this.travelTime - this.routes.fastestRoute.travelTime;
+            }
         },
 
     }

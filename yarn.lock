@@ -3267,6 +3267,10 @@ form-data@~2.3.1:
     combined-stream "1.0.6"
     mime-types "^2.1.12"
 
+formbase@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/formbase/-/formbase-7.0.0.tgz#00c52d21316b004c2288111c61687d03bb7cc07d"
+
 forwarded@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz#98c23dab1175657b8c0573e8ceccd91b0ff18c84"

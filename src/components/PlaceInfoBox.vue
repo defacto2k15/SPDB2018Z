@@ -26,6 +26,7 @@
         methods: {
             addToPlan: function (place) {
                 place.isInPlan = !place.isInPlan;
+                this.$eventHub.$emit('poiChange');
             }
         },
     }
