@@ -29,7 +29,6 @@ def message_list(request):
 
         jsonRequest = request.GET.dict()
         result = directions(jsonRequest)
-        print(result)
         message = Message.objects.all()
         serializer = MessageSerializer(message, context={'request': request}, many=True)
         return Response(result)
